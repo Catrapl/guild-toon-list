@@ -1,0 +1,31 @@
+#start script
+from lxml import html
+import requests
+#importing swgoh site
+page = requests.get('https://swgoh.gg/g/7933/poland-team/')
+tree = html.fromstring(page.content)
+
+#importing guild member list
+membersL = tree.xpath('//tbody/tr/td//a/@href')
+members=[membersL.lower() for membersL in membersL]
+print(members)
+
+#importing player information and saving to file
+tabela=[]
+for member in members:
+   kto=[]
+   url ='https://swgoh.gg'+member+'collection/'
+   page = requests.get(url)
+   tree = html.fromstring(page.content)
+   characters = tree.xpath('//a[@class="collection-char-name-link"]/text()')
+   level = tree.xpath('//div[@class="char-portrait-full-level"]/text()')
+   gear = tree.xpath('//div[@class="char-portrait-full-gear-level"]/text()')
+   progress = tree.xpath('//span[@class="collection-char-gp-label-value"]/text()')
+   for x in range(len(characters)):
+     kto.append(member)
+   spis=list(zip(kto, characters, level, gear, progress))
+   tabela=tabela+spis
+
+keys  = ['User', 'Characters', 'Level', 'Gear', 'Progress']
+import json
+print(json.dumps([dict(zip(keys, row)) for row in tabela]), file=open("guildlist.json", "a"))
